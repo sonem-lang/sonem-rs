@@ -13,8 +13,10 @@ pub struct Tag {
 
 // ~
 #[derive(Debug)]
-pub enum Phase {
-	Dynamic,
+pub enum Extent {
+	Nonstatic,
+	Nondynamic,
+	Universal,
 }
 
 //$ (first; second; last) or //$ {dom -> cod} (...)
@@ -59,7 +61,7 @@ pub enum Expr {
 // | optional_phase tag: OptionalTypeExpr = value_expr
 #[derive(Debug)]
 pub struct Definition {
-	pub phase: Phase,
+	pub extent: Extent,
 	pub tag: Tag,
 	pub r#type: Expr,
 	pub value: Expr,

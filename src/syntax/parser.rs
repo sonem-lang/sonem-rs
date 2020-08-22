@@ -15,6 +15,10 @@ pub trait MaybeParse: Sized {
 	}
 }
 
+pub trait Parse: Sized {
+	fn parse(parser: &mut Parser) -> Self;
+}
+
 pub trait TryParse: Sized {
 	fn try_parse(parser: &mut Parser) -> ParseResult<Self>;
 }
@@ -65,15 +69,19 @@ impl MaybeParse for Tag {
 	}
 }
 
-impl MaybeParse for Phase {
-	fn maybe_parse(parser: &mut Parser) -> Option<Self> {
-		Some(match parser.lexeme.class {
+impl Parse for Extent {
+	fn parse(parser: &mut Parser) -> Self {
+		match parser.lexeme.class {
 			Class::Dynamic => {
 				parser.step();
-				Phase::Dynamic
+				Extent::Nonstatic
 			},
-			_ => return None,
-		})
+			Class::Static => {
+				parser.step();
+				Extent::Nondynamic
+			},
+			_ => return Extent::Universal,
+		}
 	}
 }
 
@@ -200,7 +208,7 @@ impl TryMaybeParse for Definition {
 		}
 		parser.step();
 
-		let phase = Phase::try_parse(parser)?;
+		let extent = Extent::parse(parser);
 
 		let tag = Tag::try_parse(parser)?;
 
@@ -219,7 +227,7 @@ impl TryMaybeParse for Definition {
 		let value = Expr::try_parse(parser)?;
 
 		Ok(Some(Self {
-			phase,
+			extent,
 			tag,
 			r#type,
 			value,
